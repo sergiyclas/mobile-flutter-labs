@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:workspace_guard/screens/login_screen.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -12,226 +15,103 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => MyAppState(),
-      child: MaterialApp(
-        title: 'Namer App',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        ),
-        
-        home: MyHomePage(),
-        
+      create: (context) => WorkspaceState(),
+      child: Consumer<WorkspaceState>(
+        builder: (context, appState, child) {
+          return MaterialApp(
+            title: 'Workspace Monitor',
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: Colors.blueGrey,
+                brightness:
+                    appState.isDarkMode ? Brightness.dark : Brightness.light,
+              ),
+              useMaterial3: true,
+            ),
+            home: const LoginScreen(),
+          );
+        },
       ),
     );
   }
 }
 
-class MyAppState extends ChangeNotifier {
-  var current = Random().nextInt(20) + 1;
+class WorkspaceState extends ChangeNotifier {
+  int distance = 45;
+  bool hasMotion = false;
 
-  void getNext() {
-    current = Random().nextInt(20) + 1;
-    notifyListeners();
+  List<int> distanceHistory = <int>[...List.filled(12, 45)];
+  List<int> motionHistory = <int>[...List.filled(12, 0)];
+
+  List<String> history = ['System initialized'];
+  Timer? _timer;
+  bool isSimulationRunning = true;
+  bool isDarkMode = true;
+  bool notificationsEnabled = true;
+
+  WorkspaceState() {
+    _startSimulation();
   }
-  var favorites = <int>[];
 
-  void toggleFavorite() {
-    if (favorites.contains(current)) {
-      favorites.remove(current);
+  void toggleSimulation() {
+    isSimulationRunning = !isSimulationRunning;
+    if (isSimulationRunning) {
+      _startSimulation();
     } else {
-      favorites.add(current);
+      _timer?.cancel();
     }
     notifyListeners();
   }
 
-  void clearFavorites() {
-    favorites.clear();
+  void clearHistory() {
+    history.clear();
     notifyListeners();
   }
-}
 
-class MyHomePage extends StatefulWidget {
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  var selectedIndex = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    Widget page;
-    switch (selectedIndex) {
-      case 0:
-        page = GeneratorPage();
-        break;
-      case 1:
-        page = FavoritesPage();
-        break;
-      default:
-        throw UnimplementedError('no widget for $selectedIndex');
-    }
-
-    return Scaffold(
-      body: Row(
-        children: [
-          SafeArea(
-            child: NavigationRail(
-              extended: false,
-              destinations: [
-                NavigationRailDestination(
-                  icon: Icon(Icons.home),
-                  label: Text('Home'),
-                ),
-                NavigationRailDestination(
-                  icon: Icon(Icons.favorite),
-                  label: Text('Favorites'),
-                ),
-              ],
-              selectedIndex: selectedIndex,
-              onDestinationSelected: (value) {
-                setState(() {
-                  selectedIndex = value;
-                });
-              },
-            ),
-          ),
-          Expanded(
-            child: Container(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              child: page,
-            ),
-          ),
-        ],
-      ),
-    );
+  void toggleTheme(bool value) {
+    isDarkMode = value;
+    notifyListeners();
   }
-}
 
-class GeneratorPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
-    var number = appState.current;
-
-    IconData icon;
-    if (appState.favorites.contains(number)) {
-      icon = Icons.favorite;
-    } else {
-      icon = Icons.favorite_border;
-    }
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          BigCard(number: number),
-          SizedBox(height: 10),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ElevatedButton.icon(
-                onPressed: () {
-                  appState.toggleFavorite();
-                },
-                icon: Icon(icon),
-                label: Text('Like'),
-              ),
-              SizedBox(width: 10),
-              ElevatedButton(
-                onPressed: () {
-                  appState.getNext();
-                },
-                child: Text('Next'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+  void toggleNotifications(bool value) {
+    notificationsEnabled = value;
+    notifyListeners();
   }
-}
 
+  void _startSimulation() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      final random = Random();
 
-class BigCard extends StatelessWidget {
-  const BigCard({
-    super.key,
-    required this.number,
-  });
+      distance = 30 + random.nextInt(40);
+      hasMotion = random.nextDouble() > 0.7;
 
-  final int number;
+      distanceHistory.add(distance);
+      if (distanceHistory.length > 12) distanceHistory.removeAt(0);
 
-  @override
-  Widget build(BuildContext context) {
-    var theme = Theme.of(context);
-    var style = theme.textTheme.displayMedium!.copyWith(
-      color: theme.colorScheme.onPrimary, 
-    );
+      motionHistory.add(hasMotion ? 1 : 0);
+      if (motionHistory.length > 12) motionHistory.removeAt(0);
 
-    return Card(
-      color: theme.colorScheme.primary,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (number == 20)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Text(
-                  'Now, you are magician!',
-                  style: theme.textTheme.headlineSmall!.copyWith(
-                    color: theme.colorScheme.onPrimary,
-                  ),
-                ),
-              ),
-            Text(
-              number.toString(),
-              style: style,
-            ),
-          ],
-        ),
-      ),
-    );
+      if (distance < 40) _addLog('Too close to the screen: $distance cm!');
+      if (hasMotion) _addLog('Motion detected at the door!');
+
+      notifyListeners();
+    });
   }
-}
 
+  void _addLog(String message) {
+    final now = DateTime.now();
+    final time =
+        '${now.hour}:${now.minute.toString().padLeft(2, '0')}'
+        ':${now.second.toString().padLeft(2, '0')}';
 
-class FavoritesPage extends StatelessWidget {
+    history.insert(0, '$time - $message');
+    if (history.length > 20) history.removeLast();
+  }
+
   @override
-  Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
-
-    if (appState.favorites.isEmpty) {
-      return Center(
-        child: Text('No favorites yet.'),
-      );
-    }
-
-    return ListView(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('You have '
-                  '${appState.favorites.length} favorites:'),
-              ElevatedButton(
-                onPressed: () {
-                  appState.clearFavorites();
-                },
-                child: Text('Clear All'),
-              ),
-            ],
-          ),
-        ),
-        for (var number in appState.favorites)
-          ListTile(
-            leading: Icon(Icons.favorite),
-            title: Text(number.toString()),
-          ),
-      ],
-    );
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 }

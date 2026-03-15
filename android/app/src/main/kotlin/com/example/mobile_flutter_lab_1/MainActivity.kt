@@ -1,4 +1,4 @@
-package com.example.mobile_flutter_lab_1
+package com.example.workspace_guard
 
 import io.flutter.embedding.android.FlutterActivity
 

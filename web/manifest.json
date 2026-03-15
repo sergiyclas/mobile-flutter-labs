@@ -1,11 +1,11 @@
 {
-    "name": "mobile_flutter_lab_1",
-    "short_name": "mobile_flutter_lab_1",
+    "name": "workspace_guard",
+    "short_name": "workspace_guard",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Workspace Guard that demonstrates when someone come in room or when the client is too close to the screen, it will show a warning message.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

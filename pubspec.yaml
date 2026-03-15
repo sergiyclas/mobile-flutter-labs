@@ -1,5 +1,5 @@
-name: namer_app
-description: "A new Flutter project."
+name: workspace_guard
+description: "Workspace Guard that demonstrates when someone come in room or when the client is too close to the screen, it will show a warning message."
 publish_to: "none"
 version: 0.1.0
 

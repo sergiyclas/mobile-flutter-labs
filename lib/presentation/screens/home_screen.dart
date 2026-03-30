@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:workspace_guard/screens/dashboard_screen.dart';
-import 'package:workspace_guard/screens/profile_screen.dart';
+import 'package:workspace_guard/presentation/screens/dashboard_screen.dart';
+import 'package:workspace_guard/presentation/screens/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

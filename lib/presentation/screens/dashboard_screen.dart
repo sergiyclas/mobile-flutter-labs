@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:workspace_guard/main.dart';
-import 'package:workspace_guard/widgets/mini_bar_chart_card.dart';
-import 'package:workspace_guard/widgets/sensor_card.dart';
+import 'package:workspace_guard/presentation/providers/workspace_state.dart';
+import 'package:workspace_guard/presentation/widgets/mini_bar_chart_card.dart';
+import 'package:workspace_guard/presentation/widgets/sensor_card.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -99,25 +99,59 @@ class DashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Expanded(
-            child:
-                appState.history.isEmpty
-                    ? const Center(
-                      child: Text(
-                        'History is empty',
-                        style: TextStyle(color: Colors.grey),
+            child: ListView.builder(
+              itemCount: appState.history.length,
+              itemBuilder: (context, index) {
+                final logMessage = appState.history[index];
+                final isDistanceWarning =
+                    logMessage.contains('Too close');
+                final isMotionDetected = logMessage.contains('Motion');
+
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border(
+                        left: BorderSide(
+                          color: isDistanceWarning
+                              ? Colors.redAccent
+                              : isMotionDetected
+                                  ? Colors.orangeAccent
+                                  : Colors.blueAccent,
+                          width: 4,
+                        ),
                       ),
-                    )
-                    : ListView.builder(
-                      itemCount: appState.history.length,
-                      itemBuilder: (context, index) {
-                        return Card(
-                          child: ListTile(
-                            leading: const Icon(Icons.history, size: 20),
-                            title: Text(appState.history[index]),
-                          ),
-                        );
-                      },
                     ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          isDistanceWarning
+                              ? Icons.warning
+                              : isMotionDetected
+                                  ? Icons.directions_run
+                                  : Icons.info,
+                          color: isDistanceWarning
+                              ? Colors.redAccent
+                              : isMotionDetected
+                                  ? Colors.orangeAccent
+                                  : Colors.blueAccent,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            logMessage,
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
         ],
       ),

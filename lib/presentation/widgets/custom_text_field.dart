@@ -3,10 +3,16 @@ import 'package:flutter/material.dart';
 class CustomTextField extends StatefulWidget {
   final String label;
   final bool isPassword;
+  final TextEditingController? controller;
+  final String? Function(String?)? validator;
+  final TextInputType? keyboardType;
 
   const CustomTextField({
     required this.label,
     this.isPassword = false,
+    this.controller,
+    this.validator,
+    this.keyboardType,
     super.key,
   });
 
@@ -27,8 +33,11 @@ class _CustomTextFieldState extends State<CustomTextField> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: TextField(
+      child: TextFormField( // Змінено на TextFormField для підтримки валідації
+        controller: widget.controller,
         obscureText: _obscureText,
+        validator: widget.validator,
+        keyboardType: widget.keyboardType,
         decoration: InputDecoration(
           labelText: widget.label,
           border: const OutlineInputBorder(),

@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:workspace_guard/main.dart';
-import 'package:workspace_guard/screens/login_screen.dart';
+import 'package:workspace_guard/presentation/providers/auth_provider.dart';
+import 'package:workspace_guard/presentation/providers/workspace_state.dart';
+import 'package:workspace_guard/presentation/screens/login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
     final appState = context.watch<WorkspaceState>();
+    final user = authProvider.currentUser;
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -16,11 +19,14 @@ class ProfileScreen extends StatelessWidget {
         children: [
           const CircleAvatar(radius: 50, child: Icon(Icons.person, size: 50)),
           const SizedBox(height: 16),
-          const Text(
-            'User',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          Text(
+            user?.username ?? 'User',
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
-          const Text('user@iot-lab.com', style: TextStyle(color: Colors.grey)),
+          Text(
+            user?.email ?? 'user@example.com',
+            style: const TextStyle(color: Colors.grey),
+          ),
           const Divider(height: 40),
           ListTile(
             leading: const Icon(Icons.notifications),
@@ -48,6 +54,7 @@ class ProfileScreen extends StatelessWidget {
             icon: const Icon(Icons.logout),
             label: const Text('Logout'),
             onPressed: () {
+              context.read<AuthProvider>().logout();
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute<void>(

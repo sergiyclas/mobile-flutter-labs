@@ -1,0 +1,130 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:workspace_guard/presentation/providers/auth_provider.dart';
+import 'package:workspace_guard/presentation/widgets/custom_text_field.dart';
+
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
+
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  final _formKey = GlobalKey<FormState>();
+  
+  // Контролери для зчитування тексту
+  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    // Обов'язково очищаємо пам'ять
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _register() async {
+    if (_formKey.currentState!.validate()) {
+      final username = _usernameController.text.trim();
+      final email = _emailController.text.trim();
+      final password = _passwordController.text.trim();
+
+      final authProvider = context.read<AuthProvider>();
+      
+      final success = await authProvider.register(username, email, password);
+
+      if (!mounted) return;
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Реєстрація успішна! Тепер ви можете увійти.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Повертаємось на екран логіну
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(authProvider.errorMessage ?? 'Помилка реєстрації'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Registration')),
+      body: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Form( // Огортаємо колонку у Form
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CustomTextField(
+                label: 'Username',
+                controller: _usernameController,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Введіть ім\'я користувача';
+                  }
+                  // Перевірка на відсутність цифр в імені
+                  if (value.contains(RegExp(r'[0-9]'))) {
+                    return 'Ім\'я не може містити цифри';
+                  }
+                  return null;
+                },
+              ),
+              CustomTextField(
+                label: 'Email',
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Введіть електронну пошту';
+                  }
+                  // Перевірка на наявність @
+                  if (!value.contains('@')) {
+                    return 'Невірний формат пошти (має містити @)';
+                  }
+                  return null;
+                },
+              ),
+              CustomTextField(
+                label: 'Password',
+                isPassword: true,
+                controller: _passwordController,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Введіть пароль';
+                  }
+                  if (value.length < 6) {
+                    return 'Пароль має містити щонайменше 6 символів';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+                onPressed: _register,
+                child: const Text('Create Account'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

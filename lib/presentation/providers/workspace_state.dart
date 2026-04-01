@@ -84,7 +84,7 @@ class WorkspaceState extends ChangeNotifier {
       _client!.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
         final recMess = c[0].payload as MqttPublishMessage;
         final payload = MqttPublishPayload.bytesToStringAsString(
-          recMess.payload.message
+          recMess.payload.message,
           );
         
         _processMqttMessage(payload);

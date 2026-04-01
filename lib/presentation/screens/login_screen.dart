@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:workspace_guard/presentation/providers/auth_provider.dart';
+import 'package:workspace_guard/presentation/providers/network_provider.dart';
 import 'package:workspace_guard/presentation/screens/home_screen.dart';
 import 'package:workspace_guard/presentation/screens/register_screen.dart';
 import 'package:workspace_guard/presentation/widgets/custom_text_field.dart';
@@ -27,6 +28,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
+
+      final networkProvider = context.read<NetworkProvider>();
+      if (!networkProvider.isConnected) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Немає підключення до Інтернету!'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return; // Зупиняємо виконання функції, логін не йде далі
+      }
+
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
 

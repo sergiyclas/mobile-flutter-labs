@@ -7,6 +7,38 @@ import 'package:workspace_guard/presentation/screens/login_screen.dart';
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
+  // Виносимо логіку показу діалогу в окремий метод для чистоти коду
+  Future<bool?> _showLogoutConfirmation(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Підтвердження виходу'),
+          content: const Text('Ви дійсно хочете вийти з акаунту?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                // Закриваємо діалог і повертаємо false (Ні)
+                Navigator.of(context).pop(false);
+              },
+              child: const Text('Ні'),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.redAccent,
+              ),
+              onPressed: () {
+                // Закриваємо діалог і повертаємо true (Так)
+                Navigator.of(context).pop(true);
+              },
+              child: const Text('Так, вийти'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
@@ -33,7 +65,7 @@ class ProfileScreen extends StatelessWidget {
             title: const Text('Notifications'),
             trailing: Switch(
               value: appState.notificationsEnabled,
-              onChanged: appState.toggleNotifications,
+              onChanged: (value) => appState.toggleNotifications(value),
             ),
           ),
           ListTile(
@@ -41,7 +73,7 @@ class ProfileScreen extends StatelessWidget {
             title: const Text('Dark Mode'),
             trailing: Switch(
               value: appState.isDarkMode,
-              onChanged: appState.toggleTheme,
+              onChanged: (value) => appState.toggleTheme(value),
             ),
           ),
           const Spacer(),
@@ -53,8 +85,20 @@ class ProfileScreen extends StatelessWidget {
             ),
             icon: const Icon(Icons.logout),
             label: const Text('Logout'),
-            onPressed: () {
-              context.read<AuthProvider>().logout();
+            onPressed: () async {
+              // 1. Чекаємо відповіді від користувача з діалогового вікна
+              final shouldLogout = await _showLogoutConfirmation(context);
+
+              // 2. Якщо користувач натиснув "Ні" або просто закрив вікно 
+              // (shouldLogout == null або false)
+              if (shouldLogout != true) return;
+
+              // 3. Якщо користувач натиснув "Так", продовжуємо процес виходу
+              if (!context.mounted) return; // Перевірка, чи екран ще існує
+
+              await context.read<AuthProvider>().logout();
+              
+              if (!context.mounted) return;
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute<void>(

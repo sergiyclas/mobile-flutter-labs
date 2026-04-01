@@ -4,7 +4,6 @@ import 'package:workspace_guard/domain/entities/user_entity.dart';
 import 'package:workspace_guard/domain/repositories/i_user_repository.dart';
 
 class LocalUserRepository implements IUserRepository {
-  // Ключі для збереження даних у SharedPreferences
   static const String _userKey = 'user_data';
   static const String _isLoggedInKey = 'is_logged_in';
 
@@ -12,7 +11,6 @@ class LocalUserRepository implements IUserRepository {
   Future<void> registerUser(UserEntity user) async {
     final prefs = await SharedPreferences.getInstance();
     final String userDataString = jsonEncode(user.toJson());
-    // Зберігаємо дані користувача як JSON рядок
     await prefs.setString(_userKey, userDataString);
   }
 
@@ -27,13 +25,12 @@ class LocalUserRepository implements IUserRepository {
           decodedData as Map<String, dynamic>;
       final user = UserEntity.fromJson(userData);
 
-      // Перевіряємо, чи збігаються пошта і пароль
       if (user.email == email && user.password == password) {
         await prefs.setBool(_isLoggedInKey, true);
         return user;
       }
     }
-    return null; // Повертаємо null, якщо логін неуспішний
+    return null;
   }
 
   @override
@@ -50,7 +47,7 @@ class LocalUserRepository implements IUserRepository {
         return UserEntity.fromJson(userData);
       }
     }
-    return null; // Користувач не залогінений
+    return null;
   }
 
   @override

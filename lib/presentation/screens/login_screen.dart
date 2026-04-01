@@ -27,20 +27,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
-      // Зчитуємо дані з контролерів
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
 
-      // Отримуємо доступ до провайдера
       final authProvider = context.read<AuthProvider>();
       
-      // Викликаємо метод логіну
       final success = await authProvider.login(email, password);
 
       if (!mounted) return;
 
       if (success) {
-        // Якщо успіх - переходимо на головний екран
         Navigator.pushReplacement(
           context,
           MaterialPageRoute<void>(
@@ -48,7 +44,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       } else {
-        // Якщо помилка - показуємо SnackBar з повідомленням з провайдера
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(authProvider.errorMessage ?? 'Помилка входу'),
@@ -65,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(32),
-          child: Form( // Огортаємо елементи у Form
+          child: Form(
             key: _formKey,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

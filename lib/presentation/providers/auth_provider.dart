@@ -14,9 +14,8 @@ class AuthProvider extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  // Конструктор приймає абстракцію репозиторію
   AuthProvider(this._userRepository) {
-    _loadUser(); // При запуску пробуємо підтягнути залогіненого користувача
+    _loadUser();
   }
 
   Future<void> _loadUser() async {
@@ -35,12 +34,12 @@ class AuthProvider extends ChangeNotifier {
         _currentUser = user;
         _isLoading = false;
         notifyListeners();
-        return true; // Успіх
+        return true;
       } else {
         _errorMessage = 'Невірний email або пароль';
         _isLoading = false;
         notifyListeners();
-        return false; // Провал
+        return false;
       }
     } catch (e) {
       _errorMessage = 'Помилка авторизації: $e';

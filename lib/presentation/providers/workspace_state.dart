@@ -5,7 +5,7 @@ import 'package:mqtt_client/mqtt_client.dart';
 
 // --- МАГІЯ УМОВНИХ ІМПОРТІВ ---
 // За замовчуванням імпортуємо пустушку...
-import '../../mqtt/mqtt_setup.dart'
+import 'package:workspace_guard/mqtt/mqtt_setup.dart'
 // ...але якщо ми на телефоні (є бібліотека io), беремо цей файл:
     if (dart.library.io) '../../mqtt/mqtt_setup_io.dart'
 // ...або якщо ми в браузері (є бібліотека html), беремо цей:
@@ -83,7 +83,9 @@ class WorkspaceState extends ChangeNotifier {
 
       _client!.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
         final recMess = c[0].payload as MqttPublishMessage;
-        final payload = MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
+        final payload = MqttPublishPayload.bytesToStringAsString(
+          recMess.payload.message
+          );
         
         _processMqttMessage(payload);
       });
@@ -130,7 +132,10 @@ class WorkspaceState extends ChangeNotifier {
 
   void _addLog(String message) {
     final now = DateTime.now();
-    final time = '${now.hour}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
+    final minute = now.minute.toString().padLeft(2, '0');
+    final second = now.second.toString().padLeft(2, '0');
+    final time = '${now.hour}:$minute:$second';
+    
     history.insert(0, '$time - $message');
     if (history.length > 20) history.removeLast();
   }

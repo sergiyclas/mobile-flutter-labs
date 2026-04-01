@@ -12,7 +12,9 @@ class NetworkProvider extends ChangeNotifier {
   NetworkProvider() {
     _checkInitialConnection();
     // Підписуємося на Stream (потік) змін стану мережі
-    _subscription = _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+    _subscription = _connectivity.onConnectivityChanged.listen(
+      _updateConnectionStatus
+      );
   }
 
   // Перевірка при старті додатку

@@ -65,7 +65,7 @@ class ProfileScreen extends StatelessWidget {
             title: const Text('Notifications'),
             trailing: Switch(
               value: appState.notificationsEnabled,
-              onChanged: (value) => appState.toggleNotifications(value),
+              onChanged: appState.toggleNotifications,
             ),
           ),
           ListTile(
@@ -73,7 +73,7 @@ class ProfileScreen extends StatelessWidget {
             title: const Text('Dark Mode'),
             trailing: Switch(
               value: appState.isDarkMode,
-              onChanged: (value) => appState.toggleTheme(value),
+              onChanged: appState.toggleTheme,
             ),
           ),
           const Spacer(),

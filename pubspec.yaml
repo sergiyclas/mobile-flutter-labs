@@ -13,7 +13,7 @@ dependencies:
   provider: ^6.1.5
   shared_preferences: ^2.5.3
   connectivity_plus: ^7.1.0
-  mqtt_client: ^10.11.10
+  mqtt_client: 10.8.0
 
 dev_dependencies:
   flutter_test:

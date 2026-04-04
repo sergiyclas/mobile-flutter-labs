@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:workspace_guard/presentation/providers/auth_provider.dart';
 import 'package:workspace_guard/presentation/providers/network_provider.dart';
+import 'package:workspace_guard/presentation/providers/workspace_state.dart';
 import 'package:workspace_guard/presentation/screens/home_screen.dart';
 import 'package:workspace_guard/presentation/screens/register_screen.dart';
 import 'package:workspace_guard/presentation/widgets/custom_text_field.dart';
@@ -50,6 +51,8 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       if (success) {
+        context.read<WorkspaceState>().resetData();
+        
         Navigator.pushReplacement(
           context,
           MaterialPageRoute<void>(

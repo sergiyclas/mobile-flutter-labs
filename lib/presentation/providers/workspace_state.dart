@@ -2,36 +2,38 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:mqtt_client/mqtt_client.dart';
-
-// --- МАГІЯ УМОВНИХ ІМПОРТІВ ---
-// За замовчуванням імпортуємо пустушку...
+import 'package:workspace_guard/data/api/api_client.dart';
+import 'package:workspace_guard/data/repositories/logs_repository.dart';
 import 'package:workspace_guard/mqtt/mqtt_setup.dart'
-// ...але якщо ми на телефоні (є бібліотека io), беремо цей файл:
     if (dart.library.io) '../../mqtt/mqtt_setup_io.dart'
-// ...або якщо ми в браузері (є бібліотека html), беремо цей:
     if (dart.library.html) '../../mqtt/mqtt_setup_web.dart';
 
 class WorkspaceState extends ChangeNotifier {
   int distance = 45;
   bool hasMotion = false;
-
+  bool isDarkMode = true;
+  bool notificationsEnabled = true;
+  
   List<int> distanceHistory = <int>[...List.filled(12, 45)];
   List<int> motionHistory = <int>[...List.filled(12, 0)];
   List<String> history = ['System initialized'];
 
-  bool isDarkMode = true;
-  bool notificationsEnabled = true;
-
-  // Використовуємо БАЗОВИЙ клас, який підходить і для вебу, і для мобілки
   MqttClient? _client;
   bool isMqttConnected = false;
   
-  // Базова адреса брокера (без ws://)
   final String broker = 'broker.hivemq.com';
   final String topic = 'workspace_guard/sensor/my_unique_data'; 
 
+  late final LogsRepository _logsRepository;
+  String? _currentUserId;
+
   WorkspaceState() {
+    _logsRepository = LogsRepository(ApiClient());
     _connectToMqtt();
+  }
+
+  void setUserId(String? uid) {
+    _currentUserId = uid;
   }
 
   void toggleTheme(bool value) {
@@ -49,11 +51,18 @@ class WorkspaceState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void resetData() {
+    distance = 45;
+    hasMotion = false;
+    distanceHistory = <int>[...List.filled(12, 45)];
+    motionHistory = <int>[...List.filled(12, 0)];
+    history = ['System initialized'];
+    notifyListeners();
+  }
+
   Future<void> _connectToMqtt() async {
     final clientId = 'flutter_client_${DateTime.now().millisecondsSinceEpoch}';
     
-    // Викликаємо нашу функцію з умовного імпорту. 
-    // Вона сама вирішить, який клієнт нам повернути!
     _client = getMqttClient(broker, clientId);
     
     _client!.logging(on: false);
@@ -85,7 +94,7 @@ class WorkspaceState extends ChangeNotifier {
         final recMess = c[0].payload as MqttPublishMessage;
         final payload = MqttPublishPayload.bytesToStringAsString(
           recMess.payload.message,
-          );
+        );
         
         _processMqttMessage(payload);
       });
@@ -94,14 +103,10 @@ class WorkspaceState extends ChangeNotifier {
 
   void _processMqttMessage(String payload) {
     try {
-      // 1. Явно вказуємо, що ми очікуємо отримати словник (Map)
       final data = jsonDecode(payload) as Map<String, dynamic>;
       
-      // Тепер data.containsKey() точно повертає bool, і перша помилка зникає
       if (data.containsKey('distance')) {
-        // 2. Явно кажемо, що значення - це число (num), а потім робимо toInt()
         distance = (data['distance'] as num).toInt();
-        
         distanceHistory.add(distance);
         if (distanceHistory.length > 12) distanceHistory.removeAt(0);
       }
@@ -112,6 +117,22 @@ class WorkspaceState extends ChangeNotifier {
         if (motionHistory.length > 12) motionHistory.removeAt(0);
       }
 
+      final now = DateTime.now();
+      final min = now.minute.toString().padLeft(2, '0');
+      final sec = now.second.toString().padLeft(2, '0');
+      final time = '${now.hour}:$min:$sec';
+
+      if (_currentUserId != null) {
+        final newLog = LogModel(
+          id: '', 
+          distance: distance,
+          motion: hasMotion,
+          timestamp: time,
+        );
+        
+        _logsRepository.addLog(_currentUserId!, newLog);
+      }
+
       if (notificationsEnabled) {
         if (distance < 40) _addLog('Too close to the screen: $distance cm!');
         if (hasMotion) _addLog('Motion detected at the door!');
@@ -120,7 +141,6 @@ class WorkspaceState extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       _addLog('Error parsing MQTT data: $e');
-      // Додав $e, щоб бачити причину, якщо JSON кривий
     }
   }
 

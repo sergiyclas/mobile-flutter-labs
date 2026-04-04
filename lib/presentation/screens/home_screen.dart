@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:workspace_guard/presentation/providers/auth_provider.dart';
 import 'package:workspace_guard/presentation/providers/network_provider.dart';
+import 'package:workspace_guard/presentation/providers/workspace_state.dart';
 import 'package:workspace_guard/presentation/screens/dashboard_screen.dart';
+import 'package:workspace_guard/presentation/screens/logs_screen.dart';
 import 'package:workspace_guard/presentation/screens/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,6 +18,16 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
   @override
+  void initState() {
+    super.initState();
+    // Як тільки екран завантажився, беремо UID юзера і передаємо в WorkspaceState
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final uid = context.read<AuthProvider>().currentUser?.uid;
+      context.read<WorkspaceState>().setUserId(uid);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     // Слухаємо стан мережі
     final isConnected = context.watch<NetworkProvider>().isConnected;
@@ -25,6 +38,9 @@ class _HomeScreenState extends State<HomeScreen> {
         page = const DashboardScreen();
         break;
       case 1:
+        page = const LogsScreen(); // Додали наш новий екран логів!
+        break;
+      case 2:
         page = const ProfileScreen();
         break;
       default:
@@ -47,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ),
-            // Розтягуємо сторінку на весь вільний простір, що залишився
+            // Розтягуємо сторінку на весь вільний простір
             Expanded(child: page),
           ],
         ),
@@ -60,7 +76,14 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.dashboard),
             label: 'Dashboard',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.history), // Нова іконка для логів
+            label: 'Logs',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
         ],
       ),
     );

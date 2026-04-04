@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:workspace_guard/presentation/providers/network_provider.dart';
 import 'package:workspace_guard/presentation/screens/dashboard_screen.dart';
 import 'package:workspace_guard/presentation/screens/profile_screen.dart';
 
@@ -14,6 +16,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Слухаємо стан мережі
+    final isConnected = context.watch<NetworkProvider>().isConnected;
+
     Widget page;
     switch (_selectedIndex) {
       case 0:
@@ -27,7 +32,26 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return Scaffold(
-      body: SafeArea(child: page),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Якщо інтернету немає, показуємо цей червоний банер
+            if (!isConnected)
+              Container(
+                width: double.infinity,
+                color: Colors.redAccent,
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: const Text(
+                  'Немає з\'єднання з Інтернетом. Працюємо в офлайн-режимі',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ),
+            // Розтягуємо сторінку на весь вільний простір, що залишився
+            Expanded(child: page),
+          ],
+        ),
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (value) => setState(() => _selectedIndex = value),

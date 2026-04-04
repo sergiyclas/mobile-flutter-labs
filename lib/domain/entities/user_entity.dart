@@ -9,7 +9,6 @@ class UserEntity {
     required this.password,
   });
 
-  // Перетворюємо об'єкт у Map для збереження в JSON
   Map<String, dynamic> toJson() {
     return {
       'username': username,
@@ -18,7 +17,6 @@ class UserEntity {
     };
   }
 
-  // Створюємо об'єкт з Map після зчитування з локального сховища
   factory UserEntity.fromJson(Map<String, dynamic> json) {
     return UserEntity(
       username: json['username'] as String,

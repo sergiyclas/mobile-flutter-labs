@@ -33,7 +33,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: TextFormField( // Змінено на TextFormField для підтримки валідації
+      child: TextFormField(
         controller: widget.controller,
         obscureText: _obscureText,
         validator: widget.validator,

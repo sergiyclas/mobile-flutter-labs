@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:workspace_guard/data/repositories/local_user_repository.dart';
 import 'package:workspace_guard/presentation/providers/auth_provider.dart';
+import 'package:workspace_guard/presentation/providers/network_provider.dart';
 import 'package:workspace_guard/presentation/providers/workspace_state.dart';
 import 'package:workspace_guard/presentation/screens/home_screen.dart';
 import 'package:workspace_guard/presentation/screens/login_screen.dart';
@@ -23,6 +24,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => AuthProvider(localUserRepository),
         ),
+        ChangeNotifierProvider(create: (_) => NetworkProvider()),
       ],
       child: Consumer<WorkspaceState>(
         builder: (context, workspaceState, _) {

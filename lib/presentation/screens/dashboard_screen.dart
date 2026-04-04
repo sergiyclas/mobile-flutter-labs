@@ -25,18 +25,14 @@ class DashboardScreen extends StatelessWidget {
                 'Sensors Status',
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
-              IconButton(
-                icon: Icon(
-                  appState.isSimulationRunning
-                      ? Icons.pause_circle
-                      : Icons.play_circle,
-                  color:
-                      appState.isSimulationRunning
-                          ? Colors.orangeAccent
-                          : Colors.green,
-                  size: 32,
-                ),
-                onPressed: appState.toggleSimulation,
+              Icon(
+                appState.isMqttConnected
+                    ? Icons.wifi
+                    : Icons.wifi_off,
+                color: appState.isMqttConnected
+                    ? Colors.green
+                    : Colors.redAccent,
+                size: 32,
               ),
             ],
           ),

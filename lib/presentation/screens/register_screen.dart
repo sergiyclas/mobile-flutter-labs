@@ -13,14 +13,12 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   
-  // Контролери для зчитування тексту
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   @override
   void dispose() {
-    // Обов'язково очищаємо пам'ять
     _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -46,7 +44,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        // Повертаємось на екран логіну
         Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -65,7 +62,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       appBar: AppBar(title: const Text('Registration')),
       body: Padding(
         padding: const EdgeInsets.all(32),
-        child: Form( // Огортаємо колонку у Form
+        child: Form(
           key: _formKey,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -77,7 +74,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Введіть ім\'я користувача';
                   }
-                  // Перевірка на відсутність цифр в імені
                   if (value.contains(RegExp(r'[0-9]'))) {
                     return 'Ім\'я не може містити цифри';
                   }
@@ -92,7 +88,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Введіть електронну пошту';
                   }
-                  // Перевірка на наявність @
                   if (!value.contains('@')) {
                     return 'Невірний формат пошти (має містити @)';
                   }

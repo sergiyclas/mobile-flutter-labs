@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:workspace_guard/presentation/providers/auth_provider.dart';
+import 'package:workspace_guard/presentation/providers/network_provider.dart';
 import 'package:workspace_guard/presentation/screens/home_screen.dart';
 import 'package:workspace_guard/presentation/screens/register_screen.dart';
 import 'package:workspace_guard/presentation/widgets/custom_text_field.dart';
@@ -27,20 +28,28 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
-      // Зчитуємо дані з контролерів
+
+      final networkProvider = context.read<NetworkProvider>();
+      if (!networkProvider.isConnected) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Немає підключення до Інтернету!'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return; // Зупиняємо виконання функції, логін не йде далі
+      }
+
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
 
-      // Отримуємо доступ до провайдера
       final authProvider = context.read<AuthProvider>();
       
-      // Викликаємо метод логіну
       final success = await authProvider.login(email, password);
 
       if (!mounted) return;
 
       if (success) {
-        // Якщо успіх - переходимо на головний екран
         Navigator.pushReplacement(
           context,
           MaterialPageRoute<void>(
@@ -48,7 +57,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       } else {
-        // Якщо помилка - показуємо SnackBar з повідомленням з провайдера
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(authProvider.errorMessage ?? 'Помилка входу'),
@@ -65,7 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(32),
-          child: Form( // Огортаємо елементи у Form
+          child: Form(
             key: _formKey,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

@@ -81,7 +81,7 @@ class LogsRepository {
       return [];
       
     } catch (e) {
-      debugPrint('Помилка завантаження логів: $e');
+      debugPrint('Error during log retrieval: $e');
       
       final cachedString = prefs.getString(cacheKey);
       
@@ -105,9 +105,9 @@ class LogsRepository {
         'users/$userId/logs.json',
         data: log.toJson(),
       );
-      debugPrint('Лог успішно збережено для $userId');
+      debugPrint('Log successfully saved for $userId');
     } catch (e) {
-      debugPrint('Помилка збереження логу: $e');
+      debugPrint('Error saving log: $e');
     }
   }
 }

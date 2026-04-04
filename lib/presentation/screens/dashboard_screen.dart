@@ -10,8 +10,7 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<WorkspaceState>();
-    final screenWidth = MediaQuery.of(context).size.width;
-    final crossAxisCount = screenWidth > 600 ? 4 : 2;
+    final crossAxisCount = MediaQuery.of(context).size.width > 600 ? 4 : 2;
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -26,9 +25,7 @@ class DashboardScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               Icon(
-                appState.isMqttConnected
-                    ? Icons.wifi
-                    : Icons.wifi_off,
+                appState.isMqttConnected ? Icons.wifi : Icons.wifi_off,
                 color: appState.isMqttConnected
                     ? Colors.green
                     : Colors.redAccent,
@@ -49,18 +46,19 @@ class DashboardScreen extends StatelessWidget {
                 title: 'Distance',
                 value: '${appState.distance} cm',
                 icon: Icons.computer,
-                statusColor:
-                    appState.distance < 40 ? Colors.redAccent : Colors.green,
+                statusColor: appState.distance < 40
+                    ? Colors.redAccent
+                    : Colors.green,
               ),
               SensorCard(
                 title: 'Door',
                 value: appState.hasMotion ? 'Motion!' : 'Clear',
-                icon:
-                    appState.hasMotion
-                        ? Icons.directions_run
-                        : Icons.sensor_door,
-                statusColor:
-                    appState.hasMotion ? Colors.orangeAccent : Colors.green,
+                icon: appState.hasMotion
+                    ? Icons.directions_run
+                    : Icons.sensor_door,
+                statusColor: appState.hasMotion
+                    ? Colors.orangeAccent
+                    : Colors.green,
               ),
               MiniBarChartCard(
                 title: 'Distance Graph',
@@ -98,10 +96,17 @@ class DashboardScreen extends StatelessWidget {
             child: ListView.builder(
               itemCount: appState.history.length,
               itemBuilder: (context, index) {
-                final logMessage = appState.history[index];
-                final isDistanceWarning =
-                    logMessage.contains('Too close');
-                final isMotionDetected = logMessage.contains('Motion');
+                final logMsg = appState.history[index];
+                final isWarning = logMsg.contains('Too close');
+                final isMotion = logMsg.contains('Motion');
+                
+                final color = isWarning
+                    ? Colors.redAccent
+                    : (isMotion ? Colors.orangeAccent : Colors.blueAccent);
+                
+                final icon = isWarning
+                    ? Icons.warning
+                    : (isMotion ? Icons.directions_run : Icons.info);
 
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 4),
@@ -109,36 +114,15 @@ class DashboardScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
-                      border: Border(
-                        left: BorderSide(
-                          color: isDistanceWarning
-                              ? Colors.redAccent
-                              : isMotionDetected
-                                  ? Colors.orangeAccent
-                                  : Colors.blueAccent,
-                          width: 4,
-                        ),
-                      ),
+                      border: Border(left: BorderSide(color: color, width: 4)),
                     ),
                     child: Row(
                       children: [
-                        Icon(
-                          isDistanceWarning
-                              ? Icons.warning
-                              : isMotionDetected
-                                  ? Icons.directions_run
-                                  : Icons.info,
-                          color: isDistanceWarning
-                              ? Colors.redAccent
-                              : isMotionDetected
-                                  ? Colors.orangeAccent
-                                  : Colors.blueAccent,
-                          size: 20,
-                        ),
+                        Icon(icon, color: color, size: 20),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            logMessage,
+                            logMsg,
                             style: const TextStyle(fontSize: 13),
                           ),
                         ),

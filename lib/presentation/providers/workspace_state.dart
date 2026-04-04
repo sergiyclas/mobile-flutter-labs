@@ -10,20 +10,14 @@ import 'package:workspace_guard/mqtt/mqtt_setup.dart'
 
 class WorkspaceState extends ChangeNotifier {
   int distance = 45;
-  bool hasMotion = false;
-  bool isDarkMode = true;
-  bool notificationsEnabled = true;
-  
-  List<int> distanceHistory = <int>[...List.filled(12, 45)];
-  List<int> motionHistory = <int>[...List.filled(12, 0)];
+  bool hasMotion = false, isDarkMode = true, notificationsEnabled = true;
+  List<int> distanceHistory = List.filled(12, 45, growable: true);
+  List<int> motionHistory = List.filled(12, 0, growable: true);
   List<String> history = ['System initialized'];
-
   MqttClient? _client;
   bool isMqttConnected = false;
-  
   final String broker = 'broker.hivemq.com';
   final String topic = 'workspace_guard/sensor/my_unique_data'; 
-
   late final LogsRepository _logsRepository;
   String? _currentUserId;
 
@@ -32,9 +26,7 @@ class WorkspaceState extends ChangeNotifier {
     _connectToMqtt();
   }
 
-  void setUserId(String? uid) {
-    _currentUserId = uid;
-  }
+  void setUserId(String? uid) => _currentUserId = uid;
 
   void toggleTheme(bool value) {
     isDarkMode = value;
@@ -54,8 +46,8 @@ class WorkspaceState extends ChangeNotifier {
   void resetData() {
     distance = 45;
     hasMotion = false;
-    distanceHistory = <int>[...List.filled(12, 45)];
-    motionHistory = <int>[...List.filled(12, 0)];
+    distanceHistory = List.filled(12, 45, growable: true);
+    motionHistory = List.filled(12, 0, growable: true);
     history = ['System initialized'];
     notifyListeners();
   }
@@ -63,16 +55,13 @@ class WorkspaceState extends ChangeNotifier {
   Future<void> _connectToMqtt() async {
     final clientId = 'flutter_client_${DateTime.now().millisecondsSinceEpoch}';
     
-    _client = getMqttClient(broker, clientId);
-    
-    _client!.logging(on: false);
-    _client!.keepAlivePeriod = 20;
-    _client!.onDisconnected = _onDisconnected;
-
-    final connMessage = MqttConnectMessage()
-        .startClean()
-        .withWillQos(MqttQos.atMostOnce);
-    _client!.connectionMessage = connMessage;
+    _client = getMqttClient(broker, clientId)
+      ..logging(on: false)
+      ..keepAlivePeriod = 20
+      ..onDisconnected = _onDisconnected
+      ..connectionMessage = MqttConnectMessage()
+          .startClean()
+          .withWillQos(MqttQos.atMostOnce);
 
     try {
       _addLog('Connecting to MQTT broker...');
@@ -89,13 +78,11 @@ class WorkspaceState extends ChangeNotifier {
       notifyListeners();
 
       _client!.subscribe(topic, MqttQos.atMostOnce);
-
-      _client!.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
+      _client!.updates!.listen((c) {
         final recMess = c[0].payload as MqttPublishMessage;
         final payload = MqttPublishPayload.bytesToStringAsString(
           recMess.payload.message,
         );
-        
         _processMqttMessage(payload);
       });
     }
@@ -123,25 +110,21 @@ class WorkspaceState extends ChangeNotifier {
       final time = '${now.hour}:$min:$sec';
 
       if (_currentUserId != null) {
-        final newLog = LogModel(
-          id: '', 
-          distance: distance,
-          motion: hasMotion,
-          timestamp: time,
+        _logsRepository.addLog(
+          _currentUserId!,
+          LogModel(
+            id: '', distance: distance, motion: hasMotion, timestamp: time,
+          ),
         );
-        
-        _logsRepository.addLog(_currentUserId!, newLog);
       }
 
       if (notificationsEnabled) {
-        if (distance < 40) _addLog('Too close to the screen: $distance cm!');
+        if (distance < 40) _addLog('Too close to screen: $distance cm!');
         if (hasMotion) _addLog('Motion detected at the door!');
       }
 
       notifyListeners();
-    } catch (e) {
-      _addLog('Error parsing MQTT data: $e');
-    }
+    } catch (e) { _addLog('Error parsing MQTT data: $e'); }
   }
 
   void _onDisconnected() {
@@ -152,11 +135,9 @@ class WorkspaceState extends ChangeNotifier {
 
   void _addLog(String message) {
     final now = DateTime.now();
-    final minute = now.minute.toString().padLeft(2, '0');
-    final second = now.second.toString().padLeft(2, '0');
-    final time = '${now.hour}:$minute:$second';
-    
-    history.insert(0, '$time - $message');
+    final min = now.minute.toString().padLeft(2, '0');
+    final sec = now.second.toString().padLeft(2, '0');
+    history.insert(0, '${now.hour}:$min:$sec - $message');
     if (history.length > 20) history.removeLast();
   }
 

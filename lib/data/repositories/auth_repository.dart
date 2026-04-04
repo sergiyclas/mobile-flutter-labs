@@ -6,7 +6,6 @@ class AuthRepository {
 
   AuthRepository(this._apiClient);
 
-  // Реєстрація нового користувача
   Future<Map<String, dynamic>> signUp(String email, String password) async {
     final response = await _apiClient.authClient.post<dynamic>(
       'accounts:signUp',
@@ -20,7 +19,6 @@ class AuthRepository {
     return response.data as Map<String, dynamic>;
   }
 
-  // Вхід у систему
   Future<Map<String, dynamic>> signIn(String email, String password) async {
     final response = await _apiClient.authClient.post<dynamic>(
       'accounts:signInWithPassword',

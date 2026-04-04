@@ -1,5 +1,5 @@
 class UserEntity {
-  final String uid; // Додано
+  final String uid;
   final String username;
   final String email;
   final String password;

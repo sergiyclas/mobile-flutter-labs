@@ -6,7 +6,6 @@ class ApiClient {
   final Dio dbClient;
   final Dio authClient;
 
-  // Використовуємо URL із секретного файлу
   static const String _authBaseUrl = 'https://identitytoolkit.googleapis.com/v1/';
 
   ApiClient()

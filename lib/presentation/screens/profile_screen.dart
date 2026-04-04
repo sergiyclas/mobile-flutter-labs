@@ -13,8 +13,8 @@ class ProfileScreen extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Підтвердження виходу'),
-          content: const Text('Ви дійсно хочете вийти з акаунту?'),
+          title: const Text('Are you sure?'),
+          content: const Text('Do you really want to log out of your account?'),
           actions: [
             TextButton(
               onPressed: () {
@@ -31,7 +31,7 @@ class ProfileScreen extends StatelessWidget {
                 // Закриваємо діалог і повертаємо true (Так)
                 Navigator.of(context).pop(true);
               },
-              child: const Text('Так, вийти'),
+              child: const Text('Yes, logout'),
             ),
           ],
         );

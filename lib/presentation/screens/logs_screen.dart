@@ -43,7 +43,7 @@ class _LogsScreenState extends State<LogsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Історія спрацювань датчика'),
+        title: const Text('History Logs'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -59,7 +59,7 @@ class _LogsScreenState extends State<LogsScreen> {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             } else if (snapshot.hasError) {
-              return Center(child: Text('Помилка: ${snapshot.error}'));
+              return Center(child: Text('Error: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
               return ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -67,7 +67,7 @@ class _LogsScreenState extends State<LogsScreen> {
                   SizedBox(height: 100),
                   Center(
                     child: Text(
-                      'Немає збережених логів.',
+                      'No saved logs.',
                       style: TextStyle(fontSize: 16),
                     ),
                   ),
@@ -94,18 +94,18 @@ class _LogsScreenState extends State<LogsScreen> {
                       color: log.motion ? Colors.redAccent : Colors.green,
                       size: 32,
                     ),
-                    title: Text('Відстань: ${log.distance} см'),
-                    subtitle: Text('Час: ${log.timestamp}'),
+                    title: Text('Distance: ${log.distance} cm'),
+                    subtitle: Text('Time: ${log.timestamp}'),
                     trailing: log.motion 
                         ? const Text(
-                            'Рух!', 
+                            'Motion!', 
                             style: TextStyle(
                               color: Colors.red, 
                               fontWeight: FontWeight.bold,
                             ),
                           )
                         : const Text(
-                            'Тихо', 
+                            'Quiet', 
                             style: TextStyle(color: Colors.grey),
                           ),
                   ),

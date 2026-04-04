@@ -34,7 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!networkProvider.isConnected) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Немає підключення до Інтернету!'),
+            content: Text('No Internet Connection!'),
             backgroundColor: Colors.red,
           ),
         );
@@ -62,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(authProvider.errorMessage ?? 'Помилка входу'),
+            content: Text(authProvider.errorMessage ?? 'Error during login'),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -94,10 +94,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Введіть електронну пошту';
+                      return 'Please enter your email';
                     }
                     if (!value.contains('@')) {
-                      return 'Невірний формат пошти';
+                      return 'Invalid email format';
                     }
                     return null;
                   },
@@ -108,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _passwordController,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Введіть пароль';
+                      return 'Please enter your password';
                     }
                     return null;
                   },

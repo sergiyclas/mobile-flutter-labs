@@ -37,7 +37,7 @@ class AuthProvider extends ChangeNotifier {
       final response = await _authRepository.signIn(email, password);
       
       final token = response['idToken'] as String;
-      final uid = response['localId'] as String; // Отримуємо унікальний ID юзера
+      final uid = response['localId'] as String;
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('auth_token', token);
@@ -57,7 +57,9 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = 'Невірний email або пароль (або акаунта не існує)';
+      _errorMessage = '''
+      Error: Invalid email or password (or account does not exist)
+      ''';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -86,7 +88,9 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true; 
     } catch (e) {
-      _errorMessage = 'Помилка: Можливо такий email вже зареєстрований';
+      _errorMessage = '''
+      Error: Email is already in use or invalid
+      ''';
       _isLoading = false;
       notifyListeners();
       return false;

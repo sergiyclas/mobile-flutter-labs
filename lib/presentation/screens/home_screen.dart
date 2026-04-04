@@ -20,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Як тільки екран завантажився, беремо UID юзера і передаємо в WorkspaceState
+// Як тільки екран завантажився, беремо UID юзера і передаємо в WorkspaceState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final uid = context.read<AuthProvider>().currentUser?.uid;
       context.read<WorkspaceState>().setUserId(uid);
@@ -58,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: Colors.redAccent,
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: const Text(
-                  'Немає з\'єднання з Інтернетом. Працюємо в офлайн-режимі',
+                  'No Internet Connection! Working in offline mode.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.white, fontSize: 12),
                 ),

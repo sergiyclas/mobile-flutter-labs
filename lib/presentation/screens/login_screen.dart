@@ -53,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (success) {
         context.read<WorkspaceState>().resetData();
         
-        Navigator.pushReplacement(
+        await Navigator.pushReplacement(
           context,
           MaterialPageRoute<void>(
             builder: (context) => const HomeScreen(),
@@ -122,8 +122,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: const Text('Login'),
                 ),
                 TextButton(
-                  onPressed: () {
-                    Navigator.push(
+                  onPressed: () async {
+                    await Navigator.push(
                       context,
                       MaterialPageRoute<void>(
                         builder: (context) => const RegisterScreen(),

@@ -68,7 +68,7 @@ class LogsRepository {
               freshLogs.add(LogModel.fromJson(
                 i.toString(), 
                 Map<String, dynamic>.from(dataList[i] as Map),
-              ));
+              ),);
             }
           }
         }

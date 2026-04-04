@@ -48,7 +48,7 @@ class _LogsScreenState extends State<LogsScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _refreshLogs,
-          )
+          ),
         ],
       ),
       body: RefreshIndicator(

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:workspace_guard/presentation/providers/auth_provider.dart';
-import 'package:workspace_guard/presentation/providers/workspace_state.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:workspace_guard/presentation/cubits/auth_cubit.dart';
+import 'package:workspace_guard/presentation/cubits/mqtt_cubit.dart';
+import 'package:workspace_guard/presentation/cubits/navigation_cubit.dart';
 import 'package:workspace_guard/presentation/screens/login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  // Виносимо логіку показу діалогу в окремий метод для чистоти коду
   Future<bool?> _showLogoutConfirmation(BuildContext context) {
     return showDialog<bool>(
       context: context,
@@ -17,20 +17,12 @@ class ProfileScreen extends StatelessWidget {
           content: const Text('Do you really want to log out of your account?'),
           actions: [
             TextButton(
-              onPressed: () {
-                // Закриваємо діалог і повертаємо false (Ні)
-                Navigator.of(context).pop(false);
-              },
-              child: const Text('Ні'),
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('No, stay logged in'),
             ),
             TextButton(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.redAccent,
-              ),
-              onPressed: () {
-                // Закриваємо діалог і повертаємо true (Так)
-                Navigator.of(context).pop(true);
-              },
+              style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+              onPressed: () => Navigator.of(context).pop(true),
               child: const Text('Yes, logout'),
             ),
           ],
@@ -41,9 +33,9 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthProvider>();
-    final appState = context.watch<WorkspaceState>();
-    final user = authProvider.currentUser;
+    final authState = context.watch<AuthCubit>().state;
+    final mqttState = context.watch<MqttCubit>().state;
+    final user = authState.currentUser;
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -64,16 +56,16 @@ class ProfileScreen extends StatelessWidget {
             leading: const Icon(Icons.notifications),
             title: const Text('Notifications'),
             trailing: Switch(
-              value: appState.notificationsEnabled,
-              onChanged: appState.toggleNotifications,
+              value: mqttState.notificationsEnabled,
+              onChanged: (val) => context.read<MqttCubit>().toggleNotifications(val),
             ),
           ),
           ListTile(
             leading: const Icon(Icons.dark_mode),
             title: const Text('Dark Mode'),
             trailing: Switch(
-              value: appState.isDarkMode,
-              onChanged: appState.toggleTheme,
+              value: mqttState.isDarkMode,
+              onChanged: (val) => context.read<MqttCubit>().toggleTheme(val),
             ),
           ),
           const Spacer(),
@@ -86,19 +78,16 @@ class ProfileScreen extends StatelessWidget {
             icon: const Icon(Icons.logout),
             label: const Text('Logout'),
             onPressed: () async {
-              // 1. Чекаємо відповіді від користувача з діалогового вікна
               final shouldLogout = await _showLogoutConfirmation(context);
-
-              // 2. Якщо користувач натиснув "Ні" або просто закрив вікно 
-              // (shouldLogout == null або false)
               if (shouldLogout != true) return;
-
-              // 3. Якщо користувач натиснув "Так", продовжуємо процес виходу
-              if (!context.mounted) return; // Перевірка, чи екран ще існує
-
-              await context.read<AuthProvider>().logout();
-              
               if (!context.mounted) return;
+
+              await context.read<AuthCubit>().logout();
+              if (!context.mounted) return;
+              
+              // Скидаємо вкладку на головну при логауті
+              context.read<NavigationCubit>().setTab(0);
+              
               await Navigator.pushReplacement(
                 context,
                 MaterialPageRoute<void>(

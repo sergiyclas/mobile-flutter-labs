@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:workspace_guard/presentation/providers/auth_provider.dart';
-import 'package:workspace_guard/presentation/providers/network_provider.dart';
-import 'package:workspace_guard/presentation/providers/workspace_state.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:workspace_guard/presentation/cubits/auth_cubit.dart';
+import 'package:workspace_guard/presentation/cubits/mqtt_cubit.dart';
+import 'package:workspace_guard/presentation/cubits/network_cubit.dart';
 import 'package:workspace_guard/presentation/screens/home_screen.dart';
 import 'package:workspace_guard/presentation/screens/register_screen.dart';
 import 'package:workspace_guard/presentation/widgets/custom_text_field.dart';
@@ -30,28 +30,28 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
 
-      final networkProvider = context.read<NetworkProvider>();
-      if (!networkProvider.isConnected) {
+      final isConnected = context.read<NetworkCubit>().state;
+      if (!isConnected) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('No Internet Connection!'),
             backgroundColor: Colors.red,
           ),
         );
-        return; // Зупиняємо виконання функції, логін не йде далі
+        return;
       }
 
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
 
-      final authProvider = context.read<AuthProvider>();
+      final authCubit = context.read<AuthCubit>();
       
-      final success = await authProvider.login(email, password);
+      final success = await authCubit.login(email, password);
 
       if (!mounted) return;
 
       if (success) {
-        context.read<WorkspaceState>().resetData();
+        context.read<MqttCubit>().resetData();
         
         await Navigator.pushReplacement(
           context,
@@ -62,7 +62,9 @@ class _LoginScreenState extends State<LoginScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(authProvider.errorMessage ?? 'Error during login'),
+            content: Text(
+              authCubit.state.errorMessage ?? 'Error during login',
+            ),
             backgroundColor: Colors.redAccent,
           ),
         );

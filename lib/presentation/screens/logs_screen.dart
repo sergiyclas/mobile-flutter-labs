@@ -1,43 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:workspace_guard/data/api/api_client.dart';
-import 'package:workspace_guard/data/repositories/logs_repository.dart';
-import 'package:workspace_guard/presentation/providers/auth_provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:workspace_guard/presentation/cubits/auth_cubit.dart';
+import 'package:workspace_guard/presentation/cubits/logs_cubit.dart';
 
-class LogsScreen extends StatefulWidget {
+class LogsScreen extends StatelessWidget {
   const LogsScreen({super.key});
-
-  @override
-  State<LogsScreen> createState() => _LogsScreenState();
-}
-
-class _LogsScreenState extends State<LogsScreen> {
-  late Future<List<LogModel>> _logsFuture;
-  late LogsRepository _logsRepository;
-
-  @override
-  void initState() {
-    super.initState();
-    
-    // Отримуємо UID поточного користувача
-    final authProvider = context.read<AuthProvider>();
-    final userId = authProvider.currentUser?.uid ?? 'unknown';
-
-    final apiClient = ApiClient();
-    _logsRepository = LogsRepository(apiClient);
-    
-    // Завантажуємо логи саме для цього юзера
-    _logsFuture = _logsRepository.getLogs(userId);
-  }
-
-  Future<void> _refreshLogs() async {
-    // При оновленні також беремо актуальний UID
-    final userId = context.read<AuthProvider>().currentUser?.uid ?? 'unknown';
-    
-    setState(() {
-      _logsFuture = _logsRepository.getLogs(userId);
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,45 +14,44 @@ class _LogsScreenState extends State<LogsScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _refreshLogs,
+            onPressed: () {
+              final uid = context.read<AuthCubit>().state.currentUser?.uid;
+              context.read<LogsCubit>().fetchLogs(uid ?? 'unknown');
+            },
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _refreshLogs,
-        child: FutureBuilder<List<LogModel>>(
-          future: _logsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  SizedBox(height: 100),
-                  Center(
-                    child: Text(
-                      'No saved logs.',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                ],
-              );
-            }
-
-            final logs = snapshot.data!;
-            
-            return ListView.builder(
+      body: BlocBuilder<LogsCubit, LogsState>(
+        builder: (context, state) {
+          if (state.isLoading && state.logs.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state.errorMessage != null) {
+            return Center(child: Text(state.errorMessage!));
+          } else if (state.logs.isEmpty) {
+            return ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              itemCount: logs.length,
+              children: const [
+                SizedBox(height: 100),
+                Center(
+                  child: Text('No saved logs.', style: TextStyle(fontSize: 16)),
+                ),
+              ],
+            );
+          }
+
+          return RefreshIndicator(
+            onRefresh: () async {
+              final uid = context.read<AuthCubit>().state.currentUser?.uid;
+              await context.read<LogsCubit>().fetchLogs(uid ?? 'unknown');
+            },
+            child: ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: state.logs.length,
               itemBuilder: (context, index) {
-                final log = logs[index];
-                
+                final log = state.logs[index];
                 return Card(
                   margin: const EdgeInsets.symmetric(
-                    horizontal: 16, 
+                    horizontal: 16,
                     vertical: 8,
                   ),
                   child: ListTile(
@@ -96,24 +62,24 @@ class _LogsScreenState extends State<LogsScreen> {
                     ),
                     title: Text('Distance: ${log.distance} cm'),
                     subtitle: Text('Time: ${log.timestamp}'),
-                    trailing: log.motion 
+                    trailing: log.motion
                         ? const Text(
-                            'Motion!', 
+                            'Motion!',
                             style: TextStyle(
-                              color: Colors.red, 
+                              color: Colors.red,
                               fontWeight: FontWeight.bold,
                             ),
                           )
                         : const Text(
-                            'Quiet', 
+                            'Quiet',
                             style: TextStyle(color: Colors.grey),
                           ),
                   ),
                 );
               },
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

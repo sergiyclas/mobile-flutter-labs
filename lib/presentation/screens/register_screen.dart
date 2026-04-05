@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:workspace_guard/presentation/providers/auth_provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:workspace_guard/presentation/cubits/auth_cubit.dart';
 import 'package:workspace_guard/presentation/widgets/custom_text_field.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -31,7 +31,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final email = _emailController.text.trim();
       final password = _passwordController.text.trim();
 
-      final authProvider = context.read<AuthProvider>();
+      final authProvider = context.read<AuthCubit>();
       
       final success = await authProvider.register(username, email, password);
 
@@ -48,7 +48,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(authProvider.errorMessage ?? 'Registration error'),
+            content: 
+              Text(authProvider.state.errorMessage ?? 'Registration error'),
             backgroundColor: Colors.redAccent,
           ),
         );

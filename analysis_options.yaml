@@ -42,7 +42,6 @@ linter:
     - prefer_null_aware_operators
     - prefer_single_quotes
     - prefer_spread_collections
-    - require_trailing_commas
     - unawaited_futures # Нове: нагадає поставити await
     - unnecessary_await_in_return # Нове: чистіший асинхронний код
     - unnecessary_lambdas

@@ -9,95 +9,80 @@ import 'package:workspace_guard/mqtt/mqtt_setup.dart'
 
 class MqttState {
   final int distance;
-  final bool hasMotion;
-  final bool isDarkMode;
-  final bool notificationsEnabled;
-  final List<int> distanceHistory;
-  final List<int> motionHistory;
+  final bool hasMotion, isDarkMode, notificationsEnabled, isMqttConnected;
+  final List<int> distanceHistory, motionHistory;
   final List<String> history;
-  final bool isMqttConnected;
-
   const MqttState({
-    this.distance = 45,
-    this.hasMotion = false,
-    this.isDarkMode = true,
-    this.notificationsEnabled = true,
-    this.distanceHistory = const [],
-    this.motionHistory = const [],
-    this.history = const ['System initialized'],
-    this.isMqttConnected = false,
+    this.distance = 45, this.hasMotion = false,
+    this.isDarkMode = true, this.notificationsEnabled = true,
+    this.distanceHistory = const [], this.motionHistory = const [],
+    this.history = const ['System initialized'], this.isMqttConnected = false,
   });
 
   MqttState copyWith({
-    int? distance, bool? hasMotion, bool? isDarkMode, bool? notificationsEnabled,
-    List<int>? distanceHistory, List<int>? motionHistory,
-    List<String>? history, bool? isMqttConnected,
+    int? dist, bool? motion, bool? dark, bool? notif,
+    List<int>? distHist, List<int>? motionHist,
+    List<String>? hist, bool? connected,
   }) {
     return MqttState(
-      distance: distance ?? this.distance,
-      hasMotion: hasMotion ?? this.hasMotion,
-      isDarkMode: isDarkMode ?? this.isDarkMode,
-      notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
-      distanceHistory: distanceHistory ?? this.distanceHistory,
-      motionHistory: motionHistory ?? this.motionHistory,
-      history: history ?? this.history,
-      isMqttConnected: isMqttConnected ?? this.isMqttConnected,
+      distance: dist ?? distance,
+      hasMotion: motion ?? hasMotion,
+      isDarkMode: dark ?? isDarkMode,
+      notificationsEnabled: notif ?? notificationsEnabled,
+      distanceHistory: distHist ?? distanceHistory,
+      motionHistory: motionHist ?? motionHistory,
+      history: hist ?? history,
+      isMqttConnected: connected ?? isMqttConnected,
     );
   }
 }
 
 class MqttCubit extends Cubit<MqttState> {
   MqttClient? _client;
-  final String broker = 'broker.hivemq.com';
-  final String topic = 'workspace_guard/sensor/my_unique_data';
   final LogsRepository _logsRepository;
-  String? _currentUserId;
+  String? _uid;
 
   MqttCubit(this._logsRepository) : super(MqttState(
     distanceHistory: List.filled(12, 45, growable: true),
     motionHistory: List.filled(12, 0, growable: true),
-  )) {
-    _connectToMqtt();
-  }
+  )) { _connectToMqtt(); }
 
-  void setUserId(String? uid) => _currentUserId = uid;
-
-  void toggleTheme(bool v) => emit(state.copyWith(isDarkMode: v));
-
-  void toggleNotifications(bool v) => emit(state.copyWith(notificationsEnabled: v));
-
-  void clearHistory() => emit(state.copyWith(history: []));
+  void setUserId(String? uid) => _uid = uid;
+  void toggleTheme(bool v) => emit(state.copyWith(dark: v));
+  void toggleNotifications(bool v) => emit(state.copyWith(notif: v));
+  void clearHistory() => emit(state.copyWith(hist: []));
 
   void resetData() {
     emit(state.copyWith(
-      distance: 45, hasMotion: false,
-      distanceHistory: List.filled(12, 45, growable: true),
-      motionHistory: List.filled(12, 0, growable: true),
-      history: ['System initialized'],
+      dist: 45, motion: false, hist: ['System initialized'],
+      distHist: List.filled(12, 45, growable: true),
+      motionHist: List.filled(12, 0, growable: true),
     ));
   }
 
   Future<void> _connectToMqtt() async {
     final cid = 'flutter_client_${DateTime.now().millisecondsSinceEpoch}';
-    _client = getMqttClient(broker, cid)
+    _client = getMqttClient('broker.hivemq.com', cid)
       ..logging(on: false)..keepAlivePeriod = 20
-      ..onDisconnected = _onDisconnected
+      ..onDisconnected = () {emit(state.copyWith(connected: false));
+        _addLog('Disconnected from MQTT');
+      }
       ..connectionMessage = MqttConnectMessage()
           .startClean().withWillQos(MqttQos.atMostOnce);
 
     try {
-      _addLog('Connecting to MQTT...');
-      await _client!.connect();
+      _addLog('Connecting to MQTT...'); await _client!.connect();
     } catch (e) {
-      _addLog('MQTT Connection failed: $e');
-      _client!.disconnect();
+      _addLog('MQTT Connection failed: $e'); _client!.disconnect();
       return;
     }
 
     if (_client!.connectionStatus!.state == MqttConnectionState.connected) {
-      emit(state.copyWith(isMqttConnected: true));
+      emit(state.copyWith(connected: true));
       _addLog('Connected to MQTT Broker!');
-      _client!.subscribe(topic, MqttQos.atMostOnce);
+      _client!.subscribe(
+        'workspace_guard/sensor/my_unique_data', MqttQos.atMostOnce,
+      );
       _client!.updates!.listen((c) {
         final recMess = c[0].payload as MqttPublishMessage;
         _processMqttMessage(
@@ -122,47 +107,38 @@ class MqttCubit extends Cubit<MqttState> {
   void _processMqttMessage(String payload) {
     try {
       final data = jsonDecode(payload) as Map<String, dynamic>;
-      int newDist = state.distance;
-      bool newMotion = state.hasMotion;
-      List<int> newDistHist = state.distanceHistory;
-      List<int> newMotionHist = state.motionHistory;
+      int d = state.distance; bool m = state.hasMotion;
+      List<int> dH = state.distanceHistory; List<int> mH = state.motionHistory;
 
       if (data.containsKey('distance')) {
-        newDist = (data['distance'] as num).toInt();
-        newDistHist = _updateHist(state.distanceHistory, newDist);
+        d = (data['distance'] as num).toInt();
+        dH = _updateHist(state.distanceHistory, d);
       }
       if (data.containsKey('motion')) {
-        newMotion = data['motion'] == true || data['motion'] == 1;
-        newMotionHist = _updateHist(state.motionHistory, newMotion ? 1 : 0);
+        m = data['motion'] == true || data['motion'] == 1;
+        mH = _updateHist(state.motionHistory, m ? 1 : 0);
       }
 
-      if (_currentUserId != null) {
-        _logsRepository.addLog(_currentUserId!, LogModel(
-          id: '', distance: newDist, motion: newMotion, timestamp: _time,
+      if (_uid != null) {
+        _logsRepository.addLog(_uid!, LogModel(
+          id: '', distance: d, motion: m, timestamp: _time,
         ));
       }
 
-      emit(state.copyWith(
-        distance: newDist, hasMotion: newMotion,
-        distanceHistory: newDistHist, motionHistory: newMotionHist,
-      ));
+      emit(state.copyWith(dist: d, motion: m, distHist: dH, motionHist: mH));
 
       if (state.notificationsEnabled) {
-        if (newDist < 40) _addLog('Too close to screen: $newDist cm!');
-        if (newMotion) _addLog('Motion detected at the door!');
+        if (d < 40) _addLog('Too close to screen: $d cm!');
+        if (m) _addLog('Motion detected at the door!');
       }
     } catch (e) { _addLog('Error parsing MQTT data: $e'); }
   }
 
-  void _onDisconnected() {
-    emit(state.copyWith(isMqttConnected: false));
-    _addLog('Disconnected from MQTT');
-  }
-
   void _addLog(String msg) {
-    final newHist = List<String>.from(state.history)..insert(0, '$_time - $msg');
+    final newHist = 
+      List<String>.from(state.history)..insert(0, '$_time - $msg');
     if (newHist.length > 20) newHist.removeLast();
-    emit(state.copyWith(history: newHist));
+    emit(state.copyWith(hist: newHist));
   }
 
   @override

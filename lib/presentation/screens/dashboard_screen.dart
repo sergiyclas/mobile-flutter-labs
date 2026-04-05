@@ -27,7 +27,8 @@ class DashboardScreen extends StatelessWidget {
               ),
               Icon(
                 mqttState.isMqttConnected ? Icons.wifi : Icons.wifi_off,
-                color: mqttState.isMqttConnected ? Colors.green : Colors.redAccent,
+                color: 
+                  mqttState.isMqttConnected ? Colors.green : Colors.redAccent,
                 size: 32,
               ),
             ],
@@ -89,9 +90,9 @@ class DashboardScreen extends StatelessWidget {
                 final isMotion = logMsg.contains('Motion');
                 
                 final color = isWarning ? Colors.redAccent : 
-                              (isMotion ? Colors.orangeAccent : Colors.blueAccent);
+                          (isMotion ? Colors.orangeAccent : Colors.blueAccent);
                 final icon = isWarning ? Icons.warning : 
-                             (isMotion ? Icons.directions_run : Icons.info);
+                          (isMotion ? Icons.directions_run : Icons.info);
 
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 4),

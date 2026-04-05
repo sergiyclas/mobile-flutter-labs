@@ -72,7 +72,8 @@ class MyApp extends StatelessWidget {
                 ),
                 useMaterial3: true,
               ),
-              themeMode: mqttState.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+              themeMode: 
+                mqttState.isDarkMode ? ThemeMode.dark : ThemeMode.light,
               home: BlocBuilder<AuthCubit, AuthState>(
                 builder: (context, state) {
                   if (state.currentUser != null) {

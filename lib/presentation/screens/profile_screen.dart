@@ -57,7 +57,8 @@ class ProfileScreen extends StatelessWidget {
             title: const Text('Notifications'),
             trailing: Switch(
               value: mqttState.notificationsEnabled,
-              onChanged: (val) => context.read<MqttCubit>().toggleNotifications(val),
+              onChanged: 
+                (val) => context.read<MqttCubit>().toggleNotifications(val),
             ),
           ),
           ListTile(

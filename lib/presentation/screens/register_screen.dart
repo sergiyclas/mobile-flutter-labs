@@ -40,7 +40,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Реєстрація успішна! Тепер ви можете увійти.'),
+            content: Text('Registration successful! Please log in.'),
             backgroundColor: Colors.green,
           ),
         );
@@ -48,7 +48,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(authProvider.errorMessage ?? 'Помилка реєстрації'),
+            content: Text(authProvider.errorMessage ?? 'Registration error'),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -72,10 +72,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _usernameController,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Введіть ім\'я користувача';
+                    return 'Enter a username';
                   }
                   if (value.contains(RegExp(r'[0-9]'))) {
-                    return 'Ім\'я не може містити цифри';
+                    return 'Username cannot contain numbers';
                   }
                   return null;
                 },
@@ -86,10 +86,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Введіть електронну пошту';
+                    return 'Enter your email';
                   }
                   if (!value.contains('@')) {
-                    return 'Невірний формат пошти (має містити @)';
+                    return 'Invalid email format (must contain @)';
                   }
                   return null;
                 },
@@ -100,10 +100,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _passwordController,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Введіть пароль';
+                    return 'Enter a password';
                   }
                   if (value.length < 6) {
-                    return 'Пароль має містити щонайменше 6 символів';
+                    return 'Password must contain at least 6 characters';
                   }
                   return null;
                 },

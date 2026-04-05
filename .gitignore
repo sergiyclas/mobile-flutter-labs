@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Secrets file (contains sensitive information, should not be committed to version control)
+lib/secrets.dart

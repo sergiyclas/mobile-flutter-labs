@@ -23,6 +23,20 @@ jobs:
       - name: Flutter Pub Get
         run: flutter pub get
 
+      - name: Create dummy secrets.dart
+        run: |
+          echo "class Secrets { static const String firebaseDbUrl = 'https://dummy.com/'; static const String firebaseWebApiKey = 'dummy_key'; }" > lib/secrets.dart
+
+      - name: Check file length (Max 150 lines)
+        run: |
+          find lib -name "*.dart" -type f | while read file; do
+            lines=$(wc -l < "$file")
+            if [ "$lines" -gt 150 ]; then
+              echo "::error file=$file::File $file has $lines lines, which exceeds the 150 limit!"
+              exit 1
+            fi
+          done
+
       - name: Run Dart Analysis
         uses: invertase/github-action-dart-analyzer@main
         with:

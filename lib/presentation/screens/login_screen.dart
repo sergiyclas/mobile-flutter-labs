@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:workspace_guard/presentation/providers/auth_provider.dart';
 import 'package:workspace_guard/presentation/providers/network_provider.dart';
+import 'package:workspace_guard/presentation/providers/workspace_state.dart';
 import 'package:workspace_guard/presentation/screens/home_screen.dart';
 import 'package:workspace_guard/presentation/screens/register_screen.dart';
 import 'package:workspace_guard/presentation/widgets/custom_text_field.dart';
@@ -33,7 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!networkProvider.isConnected) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Немає підключення до Інтернету!'),
+            content: Text('No Internet Connection!'),
             backgroundColor: Colors.red,
           ),
         );
@@ -50,7 +51,9 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       if (success) {
-        Navigator.pushReplacement(
+        context.read<WorkspaceState>().resetData();
+        
+        await Navigator.pushReplacement(
           context,
           MaterialPageRoute<void>(
             builder: (context) => const HomeScreen(),
@@ -59,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(authProvider.errorMessage ?? 'Помилка входу'),
+            content: Text(authProvider.errorMessage ?? 'Error during login'),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -91,10 +94,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Введіть електронну пошту';
+                      return 'Please enter your email';
                     }
                     if (!value.contains('@')) {
-                      return 'Невірний формат пошти';
+                      return 'Invalid email format';
                     }
                     return null;
                   },
@@ -105,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _passwordController,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Введіть пароль';
+                      return 'Please enter your password';
                     }
                     return null;
                   },
@@ -119,8 +122,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: const Text('Login'),
                 ),
                 TextButton(
-                  onPressed: () {
-                    Navigator.push(
+                  onPressed: () async {
+                    await Navigator.push(
                       context,
                       MaterialPageRoute<void>(
                         builder: (context) => const RegisterScreen(),

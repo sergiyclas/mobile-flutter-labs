@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workspace_guard/data/api/api_client.dart';
+import 'package:workspace_guard/data/repositories/auth_repository.dart';
 import 'package:workspace_guard/domain/entities/user_entity.dart';
 import 'package:workspace_guard/domain/repositories/i_user_repository.dart';
 
 class AuthProvider extends ChangeNotifier {
   final IUserRepository _userRepository;
+  late final AuthRepository _authRepository;
 
   UserEntity? _currentUser;
   UserEntity? get currentUser => _currentUser;
@@ -15,6 +19,7 @@ class AuthProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   AuthProvider(this._userRepository) {
+    _authRepository = AuthRepository(ApiClient());
     _loadUser();
   }
 
@@ -29,20 +34,32 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final user = await _userRepository.loginUser(email, password);
-      if (user != null) {
-        _currentUser = user;
-        _isLoading = false;
-        notifyListeners();
-        return true;
-      } else {
-        _errorMessage = 'Невірний email або пароль';
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
+      final response = await _authRepository.signIn(email, password);
+      
+      final token = response['idToken'] as String;
+      final uid = response['localId'] as String;
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('auth_token', token);
+
+      final user = UserEntity(
+        uid: uid, // Зберігаємо ID
+        username: 'User', 
+        email: email, 
+        password: password,
+      );
+      
+      await _userRepository.registerUser(user);
+      await _userRepository.loginUser(email, password);
+
+      _currentUser = user;
+      _isLoading = false;
+      notifyListeners();
+      return true;
     } catch (e) {
-      _errorMessage = 'Помилка авторизації: $e';
+      _errorMessage = '''
+      Error: Invalid email or password (or account does not exist)
+      ''';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -55,25 +72,35 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final response = await _authRepository.signUp(email, password);
+      final uid = response['localId'] as String; // Отримуємо UID при реєстрації
+
       final user = UserEntity(
-        username: username,
-        email: email,
+        uid: uid, // Зберігаємо ID
+        username: username, 
+        email: email, 
         password: password,
       );
-      // Зберігаємо в локальне сховище
+      
       await _userRepository.registerUser(user);
+      
       _isLoading = false;
       notifyListeners();
-      return true; // Успіх
+      return true; 
     } catch (e) {
-      _errorMessage = 'Помилка реєстрації: $e';
+      _errorMessage = '''
+      Error: Email is already in use or invalid
+      ''';
       _isLoading = false;
       notifyListeners();
-      return false; // Провал
+      return false;
     }
   }
 
   Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('auth_token'); 
+    
     await _userRepository.logoutUser();
     _currentUser = null;
     notifyListeners();

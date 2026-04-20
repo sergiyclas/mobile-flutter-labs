@@ -1,30 +1,25 @@
 # workspace_guard
 
+Flutter-застосунок для лабораторних робіт з мобільної розробки. Демонструє роботу з автентифікацією, MQTT, мережею та власним Flutter-плагіном.
 
-A new Flutter project.
+## Лабораторна 7 — кастомний плагін ліхтарика
 
+Застосунок використовує власний плагін [`flash_toggle_plugin`](https://github.com/sergiyclas/flash_toggle_plugin) для керування ліхтариком на Android.
 
-## Getting Started
+**Секретний тригер:** подвійний тап по аватару на екрані **Profile** вмикає/вимикає ліхтарик. На iOS / Web з'являється попереджувальний діалог про непідтримувану платформу.
 
+## Запуск
 
-This project is a starting point for a Flutter application.
+```bash
+flutter pub get
+flutter run
+```
 
+## Корисні команди
 
-A few resources to get you started if this is your first Flutter project:
-
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-
-
-```flutter clean``` - clean all metadata
-
-```flutter analyze``` - analyze the formatting
-
-```dart fix --apply``` apply the fixes
+```bash
+flutter clean       # очистити build-артефакти
+flutter analyze     # перевірити код лінтером
+dart fix --apply    # застосувати автофікси
+flutter build apk --release   # зібрати release APK
+```

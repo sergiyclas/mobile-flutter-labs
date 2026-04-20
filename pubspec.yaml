@@ -14,6 +14,10 @@ dependencies:
   mqtt_client: 10.8.0
   dio: ^5.9.2
   flutter_bloc: ^9.1.1
+  flash_toggle_plugin:
+    git:
+      url: https://github.com/sergiyclas/flash_toggle_plugin.git
+      ref: main
 
 dev_dependencies:
   flutter_test:

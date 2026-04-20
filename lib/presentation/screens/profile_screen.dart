@@ -1,3 +1,4 @@
+import 'package:flash_toggle_plugin/flash_toggle_plugin.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:workspace_guard/presentation/cubits/auth_cubit.dart';
@@ -7,6 +8,45 @@ import 'package:workspace_guard/presentation/screens/login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  // Секретний тригер: подвійний тап по аватару перемикає ліхтарик.
+  Future<void> _onSecretFlashTap(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final isOn = await FlashTogglePlugin.toggleLight();
+      messenger.showSnackBar(
+        SnackBar(
+          duration: const Duration(milliseconds: 900),
+          content: Text(isOn ? 'Flashlight ON' : 'Flashlight OFF'),
+        ),
+      );
+    } on UnsupportedError {
+      if (!context.mounted) return;
+      await _showUnsupportedDialog(context);
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Unable to toggle flashlight.')),
+      );
+    }
+  }
+
+  Future<void> _showUnsupportedDialog(BuildContext context) {
+    return showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Not supported'),
+        content: const Text(
+          'Flashlight control is available only on Android devices.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<bool?> _showLogoutConfirmation(BuildContext context) {
     return showDialog<bool>(
@@ -41,7 +81,13 @@ class ProfileScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          const CircleAvatar(radius: 50, child: Icon(Icons.person, size: 50)),
+          GestureDetector(
+            onDoubleTap: () => _onSecretFlashTap(context),
+            child: const CircleAvatar(
+              radius: 50,
+              child: Icon(Icons.person, size: 50),
+            ),
+          ),
           const SizedBox(height: 16),
           Text(
             user?.username ?? 'User',

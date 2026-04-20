@@ -46,3 +46,5 @@ app.*.map.json
 
 # Secrets file (contains sensitive information, should not be committed to version control)
 lib/secrets.dart
+
+.claude/
